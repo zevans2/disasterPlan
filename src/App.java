@@ -1,71 +1,65 @@
+import com.mysql.jdbc.StringUtils;
+
+import java.io.FileNotFoundException;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.InputMismatchException;
+import java.util.Scanner;
 
 public class App {
-    static Connection conn;
-    static ResultSet rs;
-    static Statement st;
+    static double distance = -99;
+    static String zipIn = "fail";
+    static boolean isZip;
+    static boolean isDistance;
 
-    public static void main(String[] args) {
-        String host = "jdbc:mysql://turing.cs.missouriwestern.edu:3306/misc";
-        String user = "csc254";
-        String password = "age126";
-        String queryString = "SELECT city, region, country, latitude, longitude from cities where zip is like 64501";
-        ArrayList<Place> initPlaces = new ArrayList<>();
+    public static void main(String[] args) throws Exception {
+        Scanner input = new Scanner(System.in);
 
-        try {
-            conn = DriverManager.getConnection(host, user, password);
-            //testing connection
-            if (conn == null)
-                System.out.println("Connection Failed");
-            else {
-                System.out.println("Successfully connected to " + host);
-                st = conn.createStatement();
-                rs = st.executeQuery(queryString);
+        DataService dataService = new DataService();//Launch Data Service Handler
 
-                ResultSetMetaData rsMetaData = rs.getMetaData();
-                int numberOfColumns = rsMetaData.getColumnCount();
-                System.out.println("Number of Columns: " + numberOfColumns);
-                for (int i = 1; i <= numberOfColumns; i++) {
-                    System.out.printf("Column %2d: %s (%s) \n", i,
-                            rsMetaData.getColumnName(i),
-                            rsMetaData.getColumnTypeName(i));
-                }//end for
+        dataService.connectToDb();//Connect to zip2Database
 
-                while(rs.next()){
-                    String country = rs.getString("country");
-                    String name = rs.getString("city");
-                    String region = rs.getString("region");
-                    double latitude = rs.getDouble("latitude");
-                    double longitude = rs.getDouble("longitude");
-                    Place place = new Place(name, region, country, latitude, longitude);
-                    //add place to place arrayList
-                    initPlaces.add(place);
-                    System.out.println(place);
-                }
-            }
-            conn.close();//close connection
-        } catch (SQLException e) {
-            //e.printStackTrace();
-            System.err.println("Failed to connect to " + host);
-            System.err.println(e.getMessage());
-            System.exit(1);
-        }//end catch
+        dataService.sanitizeCities();//Remove all duplicate zipcodes and city names
 
+        //request Zip and Distance
+        requestZip(input);
+        requestDistance(input);
 
-        //Connect to Database todo: log database connection status and connection string
-        //read database into place objects.
-
-        //Request Zip Code todo: validate to only real zip codes
-
-        //Request Range in Miles for radius todo:limit distance to width of US
-
-        //Query Place ArrayList for records matching zipcode entered.
-        //Places with the same name should be compared based on state, population, and zipcode.
-        //Filter results to only return one location name and population for each place.
-
+        dataService.processRequest(zipIn, distance);//calculate distance
+        dataService.printResults();//print places within requested distance
 
     }//end main
+
+    public static void requestZip(Scanner input){
+        while (!isZip) {
+            System.out.println("Enter 5 digit zipcode: ");
+            zipIn = input.nextLine();
+            if (StringUtils.isStrictlyNumeric(zipIn) == true) {
+                if(zipIn.length() == 5)
+                    isZip = true;
+                else
+                    System.out.println("Zip Codes must be 5 characters long");
+            }else
+                System.out.println("Please enter a valid zip code");
+        }//end ziptest
+    }//end requestZip
+
+    public static void requestDistance(Scanner input){
+        while(!isDistance){
+            System.out.println("Enter distance in miles: ");
+            String temp = input.nextLine();
+            if(StringUtils.isStrictlyNumeric(temp) == true){
+                distance = Double.valueOf(temp);
+                if(distance < 3000)
+                    isDistance=true;
+                else
+                    System.out.println("Distance cannot be greater than 3000 miles");
+            }
+            else
+                System.out.println("Please enter a numeric distance less than 3000 miles. \nOnly use whole numbers.");
+        }//end distance test
+    }//end request Distance
+
 }//end Program
 
 
