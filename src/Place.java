@@ -1,3 +1,5 @@
+import java.util.ArrayList;
+
 public class Place {
     String name;
     String region;
@@ -7,6 +9,7 @@ public class Place {
     int population;
     double distanceFromOrigin;
     String zipcode;
+    ArrayList<String> zipcodeList = new ArrayList<>();
     String zipType;
 
     public Place(String name, String region, String country, double latitude, double longitude, int population, String zipcode, String zipType){
@@ -16,7 +19,8 @@ public class Place {
         this.latitude= (float) latitude;
         this.longitude= (float) longitude;
         this.population=population;
-        this.zipcode=zipcode;
+        this.zipcode = zipcode;
+        this.zipcodeList.add(zipcode);
         this.zipType=zipType;
         distanceFromOrigin = -99;
 

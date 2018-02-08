@@ -24,8 +24,7 @@ public class DataService {
         String queryString = "SELECT * from zips2 where " +
                 "country like 'US' and " +
                 "estimatedpopulation > 0 " +
-                "and locationtype like 'PRIMARY' OR " +
-                "locationtype like 'ACCEPTABLE'";
+                "and locationtype like 'PRIMARY'";
 
         try {
             conn = DriverManager.getConnection(host, user, password);
@@ -73,57 +72,61 @@ public class DataService {
     }//end ConnectToDB
 
     public void sanitizeCities(/*ArrayList<Place>initPlaces, PrintWriter logger*/) {
-        for (int i = 1; i < initPlaces.size(); i++) {
-            Place prev = initPlaces.get(i - 1);
-            Place current = initPlaces.get(i);
-
-            if (current.zipcode == prev.zipcode) {
-                logger.print("**Duplicate Zipcode found**\nSanitizing Database: Removing ");
-                if (current.zipType == "ACCEPTABLE") {
-                    logger.print(prev.toString() + " and replacing with " + current.toString());
-                    initPlaces.remove(prev);
-                } else {
-                    initPlaces.remove(current);
-                    logger.print(current.toString() + " and replacing with " + prev.toString());
-                }
-            }//end matching zipcodes
+        for (int i = 0; i < initPlaces.size(); i++) {
+            for (int j = i + 1; j < initPlaces.size(); j++) {
+                Place current = initPlaces.get(i);
+                Place next = initPlaces.get(j);
+                if (current.name.equals(next.name)) {
+                    current.population += next.population;//add next population to current
+                    for(int k = 0; k<next.zipcodeList.size();k++) {
+                        current.zipcodeList.add(next.zipcodeList.get(k));
+                        }
+                    initPlaces.remove(next);
+                    j--;//decrement j
+                }//end matching cities
+            }//end for
         }//end for
     }//end sanitize
 
 
     public void processRequest(String zipIn, double distance) {
+        distance = (distance * distance)/distance; //take absolute value of distance.
+
         //haversine formula
         int index = 0;
         Place comparator; /*= new Place("", "", "",.00, .00, 0, "", "");
         *///search for zip location
         for (int i = 0; i < initPlaces.size(); i++) {
-            if (initPlaces.get(i).zipcode == zipIn) {
+            if (initPlaces.get(i).zipcodeList.contains(zipIn)){
                 index = i;
                 break;
             }//exit loop
         }//end for
+
         comparator = initPlaces.get(index);
 
         //get Places that are within the requested distance.
         for(int i = 0; i< initPlaces.size(); i++){
             Place temp = initPlaces.get(i);
-            if(haversine(comparator.latitude,temp.latitude, comparator.longitude, temp.longitude) <= milesToKm(distance))
-                toPrint.add(initPlaces.get(i));
+            double distanceFromOrigin = haversine(comparator.latitude,temp.latitude, comparator.longitude, temp.longitude);
+            if(distanceFromOrigin <= milesToKm(distance))
+                toPrint.add(initPlaces.get(i));//if within distance add to PrintArray
         }//end for
+        System.out.println("Selected City: " + comparator.name + "\n");
     }//end process Request
 
 
     public void printResults(){
-        System.out.println("City\t\t\tState\t\t\tTotal Population");
+        System.out.printf("%-25S %-15S %-15S\n", "City", "State", "Population");
         for(int i = 0; i<toPrint.size(); i++){
             Place temp = toPrint.get(i);
-            System.out.println(temp.name+"\t\t" + temp.region +"\t\t" +temp.population);
-        }
-    }
+            System.out.printf("%-25S %-15S %-15S\n", temp.name, temp.region, temp.population);
+        }//end for
+    }//end print
 
 
     public double haversine(float lat1, float lat2, float lon1, float lon2) {
-        double R = 6371e3; // in metres
+        double R = 6371; // in Km
         double phi1 = Math.toRadians(lat1);
         double phi2 = Math.toRadians(lat2);
         double deltaPhi = Math.toRadians(lat2 - lat1);
