@@ -3,16 +3,16 @@ import java.util.ArrayList;
 public class Place {
     String name;
     String region;
-    String country;
+    private String country;
     float latitude;
     float longitude;
     int population;
     double distanceFromOrigin;
-    String zipcode;
+    private String zipcode;
     ArrayList<String> zipcodeList = new ArrayList<>();
-    String zipType;
+    private String zipType;
 
-    public Place(String name, String region, String country, double latitude, double longitude, int population, String zipcode, String zipType){
+    Place(String name, String region, String country, double latitude, double longitude, int population, String zipcode, String zipType){
         this.name = name;
         this.region = region;
         this.country =country;
@@ -26,7 +26,7 @@ public class Place {
 
     }
 
-    public int getPopulation() {
+  /*  public int getPopulation() {
         return population;
     }
 
@@ -90,12 +90,12 @@ public class Place {
         this.longitude = longitude;
     }
 
-    public double getDistanceFromOrigin() {
-        return distanceFromOrigin;
-    }
 
     public void setDistanceFromOrigin(double distanceFromOrigin) {
         this.distanceFromOrigin = distanceFromOrigin;
+    }*/
+    public double getDistanceFromOrigin() {
+        return distanceFromOrigin;
     }
 
     @Override

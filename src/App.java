@@ -1,18 +1,13 @@
 import com.mysql.jdbc.StringUtils;
-
-import java.io.FileNotFoundException;
-import java.sql.*;
-import java.util.ArrayList;
-import java.util.InputMismatchException;
 import java.util.Scanner;
 
 public class App {
-    static double distance = -99;
-    static String zipIn = "fail";
-    static boolean isZip;
-    static boolean isDistance;
+    private static double distance = -99;
+    private static String zipIn = "fail";
+    private static boolean isZip;
+    private static boolean isDistance;
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args){
         Scanner input = new Scanner(System.in);
 
         DataService dataService = new DataService();//Launch Data Service Handler
@@ -30,11 +25,11 @@ public class App {
 
     }//end main
 
-    public static void requestZip(Scanner input){
+    private static void requestZip(Scanner input){
         while (!isZip) {
             System.out.println("Enter 5 digit zipcode: ");
             zipIn = input.nextLine();
-            if (StringUtils.isStrictlyNumeric(zipIn) == true) {
+            if (StringUtils.isStrictlyNumeric(zipIn)) {
                 if(zipIn.length() == 5)
                     isZip = true;
                 else
@@ -44,11 +39,11 @@ public class App {
         }//end ziptest
     }//end requestZip
 
-    public static void requestDistance(Scanner input){
+    private static void requestDistance(Scanner input){
         while(!isDistance){
             System.out.println("Enter distance in miles: ");
             String temp = input.nextLine();
-            if(StringUtils.isStrictlyNumeric(temp) == true){
+            if(StringUtils.isStrictlyNumeric(temp)){
                 distance = Double.valueOf(temp);
                 if(distance < 3000)
                     isDistance=true;

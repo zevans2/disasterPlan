@@ -1,21 +1,13 @@
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
 import java.sql.*;
 import java.util.ArrayList;
 
 public class DataService {
-    private static Connection conn;
-    private static ResultSet rs;
-    private static Statement st;
     private ArrayList<Place> initPlaces = new ArrayList<>();
     private ArrayList<Place> toPrint = new ArrayList<>();
 
 
-    public DataService() throws FileNotFoundException {
+    DataService(){
     }
-
-    private PrintWriter logger = new PrintWriter(new File("disaster.log.txt"));
 
     public void connectToDb() {
         String host = "jdbc:mysql://turing.cs.missouriwestern.edu:3306/misc";
@@ -27,14 +19,14 @@ public class DataService {
                 "and locationtype like 'PRIMARY'";
 
         try {
-            conn = DriverManager.getConnection(host, user, password);
+            Connection conn = DriverManager.getConnection(host, user, password);
             //testing connection
             if (conn == null)
                 System.out.println("Connection Failed");
             else {
                 System.out.println("Successfully connected to " + host);
-                st = conn.createStatement();
-                rs = st.executeQuery(queryString);
+                Statement st = conn.createStatement();
+                ResultSet rs = st.executeQuery(queryString);
 
                 ResultSetMetaData rsMetaData = rs.getMetaData();
                 int numberOfColumns = rsMetaData.getColumnCount();
@@ -62,6 +54,7 @@ public class DataService {
                 System.out.println(initPlaces.toString());
                 System.out.println(initPlaces.size());
             }
+            assert conn != null;
             conn.close();//close connection
         } catch (SQLException e) {
             //e.printStackTrace();
@@ -78,9 +71,7 @@ public class DataService {
                 Place next = initPlaces.get(j);
                 if (current.name.equals(next.name)) {
                     current.population += next.population;//add next population to current
-                    for(int k = 0; k<next.zipcodeList.size();k++) {
-                        current.zipcodeList.add(next.zipcodeList.get(k));
-                        }
+                    current.zipcodeList.addAll(next.zipcodeList);
                     initPlaces.remove(next);
                     j--;//decrement j
                 }//end matching cities
@@ -106,10 +97,9 @@ public class DataService {
         comparator = initPlaces.get(index);
 
         //get Places that are within the requested distance.
-        for(int i = 0; i< initPlaces.size(); i++){
-            Place temp = initPlaces.get(i);
-            double distanceFromOrigin = haversine(comparator.latitude,temp.latitude, comparator.longitude, temp.longitude);
-            if(distanceFromOrigin <= milesToKm(distance))
+        for (Place temp : initPlaces) {
+            double distanceFromOrigin = haversine(comparator.latitude, temp.latitude, comparator.longitude, temp.longitude);
+            if (distanceFromOrigin <= milesToKm(distance))
                 //initPlaces.get(i).setDistanceFromOrigin(distanceFromOrigin);
                 toPrint.add(temp);//if within distance add to PrintArray
         }//end for
@@ -119,14 +109,13 @@ public class DataService {
 
     public void printResults(){
         System.out.printf("%-25S %-15S %-15S %-15s %-15S\n", "City", "State", "Population", "Miles", "Km" );
-        for(int i = 0; i<toPrint.size(); i++){
-            Place temp = toPrint.get(i);
+        for (Place temp : toPrint) {
             System.out.printf("%-25S %-15S %-15S %-15s %-15S\n", temp.name, temp.region, temp.population, temp.distanceFromOrigin, milesToKm(temp.getDistanceFromOrigin()));
         }//end for
     }//end print
 
 
-    public double haversine(float lat1, float lat2, float lon1, float lon2) {
+    private double haversine(float lat1, float lat2, float lon1, float lon2) {
         double R = 6371; // in Km
         double phi1 = Math.toRadians(lat1);
         double phi2 = Math.toRadians(lat2);
@@ -140,14 +129,12 @@ public class DataService {
         return d;
     }
 
-    public double milesToKm(double distanceMiles) {
-        double distanceKm = distanceMiles * 1.60934;
-        return distanceKm;
+    private double milesToKm(double distanceMiles) {
+        return distanceMiles * 1.60934;
     }
 
     public double kmToMiles(double distanceKm) {
-        double distanceMiles = distanceKm / 1.60934;
-        return distanceMiles;
+        return distanceKm / 1.60934;
     }
 
 }//end data service
