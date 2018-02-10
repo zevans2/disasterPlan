@@ -110,17 +110,18 @@ public class DataService {
             Place temp = initPlaces.get(i);
             double distanceFromOrigin = haversine(comparator.latitude,temp.latitude, comparator.longitude, temp.longitude);
             if(distanceFromOrigin <= milesToKm(distance))
-                toPrint.add(initPlaces.get(i));//if within distance add to PrintArray
+                //initPlaces.get(i).setDistanceFromOrigin(distanceFromOrigin);
+                toPrint.add(temp);//if within distance add to PrintArray
         }//end for
         System.out.println("Selected City: " + comparator.name + "\n");
     }//end process Request
 
 
     public void printResults(){
-        System.out.printf("%-25S %-15S %-15S\n", "City", "State", "Population");
+        System.out.printf("%-25S %-15S %-15S %-15s %-15S\n", "City", "State", "Population", "Miles", "Km" );
         for(int i = 0; i<toPrint.size(); i++){
             Place temp = toPrint.get(i);
-            System.out.printf("%-25S %-15S %-15S\n", temp.name, temp.region, temp.population);
+            System.out.printf("%-25S %-15S %-15S %-15s %-15S\n", temp.name, temp.region, temp.population, temp.distanceFromOrigin, milesToKm(temp.getDistanceFromOrigin()));
         }//end for
     }//end print
 
